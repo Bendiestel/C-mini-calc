@@ -1,0 +1,62 @@
+#!/bin/bash
+
+# Function to print error and exit when wrong number of arguments are passed
+exit_with_error() {
+    echo "Error: Incorrect number of arguments supplied for $1 task."
+    exit $2
+}
+
+# Check the task type and call the respective function
+case "$1" in
+    "avg")
+        # Check if the number of arguments is correct
+        if [ $# -ne 2 ]; then
+            exit_with_error "avg" 2
+        fi
+        # Calculate average population of the cities in the given country
+        awk -F, -v country="$2" '
+            BEGIN {sum=0; count=0}
+            $4 == country {sum += $8; count++}
+            END {
+                if (count > 0)
+                    printf "%.0f\n", sum/count
+                else
+                    printf "0\n"
+            }' worldcities.csv
+        ;;
+    "total")
+        # Check if the number of arguments is correct
+        if [ $# -ne 2 ]; then
+            exit_with_error "total" 3
+        fi
+        # Calculate total population of the cities in the given country
+        awk -F, -v country="$2" '
+            BEGIN {sum=0}
+            $4 == country {sum += $8}
+            END {printf "%.0f\n", sum}' worldcities.csv
+        ;;
+    "diff")
+        # Check if the number of arguments is correct
+        if [ $# -ne 3 ]; then
+            exit_with_error "diff" 4
+        fi
+        # Calculate difference in population between two cities
+        awk -F, -v city1="$2" -v city2="$3" '
+            BEGIN {pop1=0; pop2=0; found1=0; found2=0}
+            $1 == city1 {pop1=$8; found1=1}
+            $1 == city2 {pop2=$8; found2=1}
+            END {
+                if (found1 && found2)
+                    printf "%.0f\n", pop1 - pop2
+                else if (!found1)
+                    printf "City %s not found\n", city1
+                else if (!found2)
+                    printf "City %s not found\n", city2
+            }' worldcities.csv
+        ;;
+    *)
+        echo "Error: Invalid task. Please use 'avg', 'total', or 'diff'."
+        exit 1
+        ;;
+esac
+

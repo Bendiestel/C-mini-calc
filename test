@@ -1,0 +1,52 @@
+#!/bin/bash
+./build # Compile the program first
+
+# Function to perform a test
+perform_test() {
+    description=$1
+    command=$2
+    expected_output=$3
+    expected_exit_code=$4
+
+    echo -n "Testing $description: "
+    output=$($command 2>&1)  # Captures both stdout and stderr
+    exit_code=$?
+
+    if [[ "$output" == *"$expected_output"* ]] && [ "$exit_code" -eq $expected_exit_code ]; then
+        echo "PASSED"
+    else
+        echo "FAILED - Expected output '$expected_output' with exit code $expected_exit_code, got '$output' with exit code $exit_code"
+    fi
+}
+
+# Test addition
+perform_test "addition" "./minicalc + 5 3" "8" 0
+perform_test "addition with insufficient arguments" "./minicalc +" "Error: Addition requires exactly two arguments" 3
+perform_test "addition with non-numeric arguments" "./minicalc + five three" "Error: Operands must be of the correct type" 4
+
+# Test GCD
+perform_test "gcd" "./minicalc gcd 15 25" "5" 0
+perform_test "gcd with insufficient arguments" "./minicalc gcd 15" "Error: GCD requires at least two arguments" 3
+perform_test "gcd with non-positive arguments" "./minicalc gcd -15 25" "Error: GCD operands must be greater than zero" 7
+perform_test "gcd with non-numeric arguments" "./minicalc gcd fifteen twentyfive" "Error: Operands must be of the correct type" 4
+
+# Test square root
+perform_test "square root" "./minicalc sqrt 9" "3.00" 0
+perform_test "square root with negative number" "./minicalc sqrt -4" "Error: Square root input must be nonnegative" 5
+perform_test "square root with non-numeric arguments" "./minicalc sqrt nine" "Error: Operands must be of the correct type" 4
+
+# Test anagram
+perform_test "anagram true case" "./minicalc anagram listen silent" "true" 0
+perform_test "anagram false case" "./minicalc anagram listen xyz" "false" 0
+perform_test "anagram with non-letter characters" "./minicalc anagram li$ten s!lent" "Error: Inputs must consist only of lowercase letters" 6
+perform_test "anagram with insufficient arguments" "./minicalc anagram listen" "Error: Anagram requires exactly two arguments" 3
+perform_test "anagram with non-alphabetic arguments" "./minicalc anagram 123 321" "Error: Inputs must consist only of lowercase letters" 6
+
+# Test no operation provided
+perform_test "no operation provided" "./minicalc" "Error: No operation provided" 1
+
+# Test unknown operation
+perform_test "unknown operation" "./minicalc unknown 1 2" "Error: Unknown operation 'unknown'" 2
+
+# Additional comprehensive tests can be added as needed
+
